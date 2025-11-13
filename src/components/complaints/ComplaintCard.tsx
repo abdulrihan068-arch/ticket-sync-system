@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Calendar, User } from 'lucide-react';
+import { MessageSquare, Calendar, User, Paperclip } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
@@ -51,6 +51,12 @@ const ComplaintCard = ({ complaint, onUpdate }: ComplaintCardProps) => {
               <div className="flex items-center gap-1">
                 <User className="h-4 w-4" />
                 {complaint.student_profile.name}
+              </div>
+            )}
+            {complaint.attachment_url && (
+              <div className="flex items-center gap-1">
+                <Paperclip className="h-4 w-4" />
+                <span>Attachment</span>
               </div>
             )}
           </div>
