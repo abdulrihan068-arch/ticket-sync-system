@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Upload, X } from 'lucide-react';
 
 interface CreateComplaintDialogProps {
   open: boolean;
@@ -21,6 +21,7 @@ const CreateComplaintDialog = ({ open, onOpenChange }: CreateComplaintDialogProp
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -45,6 +46,26 @@ const CreateComplaintDialog = ({ open, onOpenChange }: CreateComplaintDialogProp
 
     setLoading(true);
     try {
+      let attachmentUrl = null;
+
+      // Upload file if selected
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('complaint-attachments')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('complaint-attachments')
+          .getPublicUrl(fileName);
+
+        attachmentUrl = publicUrl;
+      }
+
       const { error } = await supabase
         .from('complaints')
         .insert({
@@ -53,6 +74,7 @@ const CreateComplaintDialog = ({ open, onOpenChange }: CreateComplaintDialogProp
           category_id: categoryId,
           student_id: user.id,
           status: 'pending',
+          attachment_url: attachmentUrl,
         });
 
       if (error) throw error;
@@ -66,6 +88,7 @@ const CreateComplaintDialog = ({ open, onOpenChange }: CreateComplaintDialogProp
       setTitle('');
       setDescription('');
       setCategoryId('');
+      setFile(null);
       onOpenChange(false);
     } catch (error: any) {
       toast({
@@ -125,6 +148,38 @@ const CreateComplaintDialog = ({ open, onOpenChange }: CreateComplaintDialogProp
               rows={5}
               required
             />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="attachment">Attachment (Optional)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="attachment"
+                type="file"
+                accept="image/*,.pdf,.doc,.docx"
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => document.getElementById('attachment')?.click()}
+                className="w-full"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {file ? file.name : 'Choose File'}
+              </Button>
+              {file && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setFile(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
           
           <div className="flex justify-end gap-2">
