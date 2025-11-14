@@ -1,10 +1,42 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [checkingSetup, setCheckingSetup] = useState(true);
+
+  useEffect(() => {
+    checkIfSetupNeeded();
+  }, []);
+
+  const checkIfSetupNeeded = async () => {
+    try {
+      const { data, error } = await supabase.rpc('has_any_admin');
+      
+      if (error) throw error;
+      
+      // If no admin exists, redirect to setup
+      if (!data) {
+        navigate('/setup');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking setup:', error);
+    } finally {
+      setCheckingSetup(false);
+    }
+  };
+
+  if (checkingSetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/30">
