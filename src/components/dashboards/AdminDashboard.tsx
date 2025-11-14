@@ -1,16 +1,25 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import ComplaintList from '@/components/complaints/ComplaintList';
-import { BarChart3, Users, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { BarChart3, Users, AlertCircle, CheckCircle2, TrendingUp } from 'lucide-react';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   return (
     <DashboardLayout title="Admin Dashboard">
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <Button onClick={() => navigate('/analytics')} variant="outline">
+            <TrendingUp className="mr-2 h-4 w-4" />
+            View Analytics
+          </Button>
+        </div>
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
